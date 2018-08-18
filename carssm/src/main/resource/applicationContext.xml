@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+    <!--扫描器扫描包中的资源类，形成实例-->
+    <context:component-scan base-package="com.*.dao,com.*.service"/>
+    <context:annotation-config/>
+    <!--扫描映射接口-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage" value="com.*.dao"/>
+    </bean>
+    <!--读取配置文件-->
+    <util:properties id="properties" location="classpath:jdbc.properties"/>
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass" value="#{properties.driver}"/>
+        <property name="jdbcUrl" value="#{properties.url}"/>
+        <property name="user" value="#{properties.username}"/>
+        <property name="password" value="#{properties.password}"/>
+        <!--minPoolSize最小的连接数-->
+        <property name="minPoolSize" value="10"/>
+        <!--maxPoolSize最大的连接数，默认为15-->
+        <property name="maxPoolSize" value="20"/>
+        <!--连接池中一开始就得到整个数量的连接数-->
+        <property name="initialPoolSize" value="10"/>
+        <!-- 当连接耗尽时，c3p0一次自动产生几个连接-->
+        <property name="acquireIncrement" value="2"/>
+        <!--最大空间连接时间，不用时自动关闭数据源-->
+        <property name="maxIdleTime" value="120"/>
+     </bean>
+        <!--创建会话工厂-->
+    <bean class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <!--指定包下的类名为别名-->
+        <property name="typeAliasesPackage" value="com.spring.pojo"/>
+        <property name="configuration">
+            <bean class="org.apache.ibatis.session.Configuration">
+                <!--开启下划线转驼峰命名，对应数据库表格名与pojo类名相映射-->
+                <property name="mapUnderscoreToCamelCase" value="true"/>
+            </bean>
+        </property>
+    </bean>
+    <!--&lt;!&ndash;定义事务管理器&ndash;&gt;
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+    &lt;!&ndash;配置事务管理器&ndash;&gt;
+    <tx:annotation-driven transaction-manager="transactionManager"/>-->
+	<!--导入事务管理器配置文件 -->
+    <import resource="classpath:applicationContext-tx.xml"/>
+</beans>
